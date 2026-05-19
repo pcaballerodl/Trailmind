@@ -1,0 +1,4 @@
+﻿anthropic
+gpxpy
+flask
+requests

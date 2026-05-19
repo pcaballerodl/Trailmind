@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrailMind — Planificador de Expediciones</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="/static/css/estilos.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">Trail<span>Mind</span></div>
+    <button id="btn-nuevo-track" class="oculto">Cargar otro track</button>
+  </header>
+
+  <!-- ── Pantalla inicial: subida de archivo ── -->
+  <section id="zona-carga">
+
+    <div id="drop-zone">
+      <div class="icono-montana">⛰️</div>
+      <h2>Sube tu track GPX</h2>
+      <p>Arrastra el archivo aquí o pulsa el botón</p>
+      <button id="btn-seleccionar">Seleccionar archivo</button>
+      <input type="file" id="input-archivo" accept=".gpx" style="display:none">
+    </div>
+
+    <div id="spinner" class="oculto">
+      <div class="rueda-spinner"></div>
+      Analizando track…
+    </div>
+
+    <div id="mensaje-error" class="oculto"></div>
+
+  </section>
+
+  <!-- ── Dashboard: mapa + gráfico + estadísticas ── -->
+  <main id="dashboard" class="oculto">
+
+    <!-- Panel lateral de estadísticas -->
+    <aside id="panel-stats">
+
+      <div>
+        <h2>Track</h2>
+        <div id="stat-nombre" class="nombre-track">—</div>
+      </div>
+
+      <div class="grupo-stats">
+        <h2>Distancia y desnivel</h2>
+        <div class="stat-fila">
+          <span class="stat-label">Distancia</span>
+          <span id="stat-distancia" class="stat-valor">—</span>
+        </div>
+        <div class="stat-fila">
+          <span class="stat-label">Desnivel +</span>
+          <span id="stat-desnivel-pos" class="stat-valor verde">—</span>
+        </div>
+        <div class="stat-fila">
+          <span class="stat-label">Desnivel −</span>
+          <span id="stat-desnivel-neg" class="stat-valor rojo">—</span>
+        </div>
+      </div>
+
+      <div class="grupo-stats">
+        <h2>Altitud</h2>
+        <div class="stat-fila">
+          <span class="stat-label">Máxima</span>
+          <span id="stat-alt-max" class="stat-valor">—</span>
+        </div>
+        <div class="stat-fila">
+          <span class="stat-label">Mínima</span>
+          <span id="stat-alt-min" class="stat-valor">—</span>
+        </div>
+        <div class="stat-fila">
+          <span class="stat-label">Media</span>
+          <span id="stat-alt-media" class="stat-valor">—</span>
+        </div>
+      </div>
+
+      <div class="grupo-stats">
+        <h2>Detalles</h2>
+        <div class="stat-fila">
+          <span class="stat-label">Puntos</span>
+          <span id="stat-puntos" class="stat-valor">—</span>
+        </div>
+        <div class="stat-fila">
+          <span class="stat-label">Con tiempos</span>
+          <span id="stat-timestamps" class="stat-valor">—</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Mapa Leaflet -->
+    <section id="panel-mapa">
+      <div id="mapa"></div>
+    </section>
+
+    <!-- Gráfico de elevación -->
+    <section id="panel-grafico">
+      <h3>Perfil de elevación</h3>
+      <div class="contenedor-canvas">
+        <canvas id="grafico-elevacion"></canvas>
+        <div id="grafico-sin-elevacion" style="display:none">
+          Este track no contiene datos de elevación
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Módulos JS propios (orden importa: namespace primero) -->
+  <script src="/static/js/estadisticas.js"></script>
+  <script src="/static/js/mapa.js"></script>
+  <script src="/static/js/grafico.js"></script>
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>

@@ -115,12 +115,31 @@
       </div>
     </section>
 
+    <!-- Previsión meteorológica -->
+    <section id="panel-meteo">
+      <div class="meteo-cabecera">
+        <h3>Previsión meteorológica</h3>
+        <div class="meteo-controles">
+          <label for="fecha-expedicion">Fecha inicio:</label>
+          <input type="date" id="fecha-expedicion">
+          <button id="btn-consultar-meteo">Consultar</button>
+        </div>
+      </div>
+      <div id="meteo-spinner" class="oculto">
+        <div class="rueda-spinner rueda-spinner--pequena"></div>
+        Consultando previsión…
+      </div>
+      <div id="meteo-error" class="oculto meteo-error-msg"></div>
+      <div id="meteo-tarjetas" class="meteo-tarjetas"></div>
+    </section>
+
   </main>
 
   <!-- Módulos JS propios (orden importa: namespace primero) -->
   <script src="/static/js/estadisticas.js"></script>
   <script src="/static/js/mapa.js"></script>
   <script src="/static/js/grafico.js"></script>
+  <script src="/static/js/meteo.js"></script>
   <script src="/static/js/app.js"></script>
 
 </body>

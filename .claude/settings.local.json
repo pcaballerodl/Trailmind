@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pip install *)",
-      "Bash(python -m pytest tests/test_gpx_parser.py -v)"
+      "Bash(python -m pytest tests/test_gpx_parser.py -v)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

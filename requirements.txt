@@ -2,3 +2,4 @@
 gpxpy
 flask
 requests
+pytest

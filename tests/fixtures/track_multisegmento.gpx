@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TrailMind-test"
+  xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Track segmento 1</name>
+    <trkseg>
+      <trkpt lat="42.0000" lon="0.0000"><ele>1000.0</ele></trkpt>
+      <trkpt lat="42.0141" lon="0.0000"><ele>1100.0</ele></trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="42.0282" lon="0.0000"><ele>1200.0</ele></trkpt>
+      <trkpt lat="42.0423" lon="0.0000"><ele>1300.0</ele></trkpt>
+    </trkseg>
+  </trk>
+  <trk>
+    <name>Track segmento 2</name>
+    <trkseg>
+      <trkpt lat="42.0564" lon="0.0000"><ele>1400.0</ele></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

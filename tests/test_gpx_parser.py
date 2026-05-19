@@ -85,6 +85,82 @@ class TestParsearGpx:
             assert "timestamp" in punto
 
 
+class TestAltitudMedia:
+    def test_altitud_media_correcta(self):
+        # (1000 + 1200 + 1500 + 1400 + 1000) / 5 = 1220
+        archivo = abrir_fixture("track_simple.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["altitud_media_m"] == pytest.approx(1220.0, abs=0.5)
+
+
+class TestDistancia:
+    def test_distancia_aproximada(self):
+        # 4 tramos de ~1.57 km ≈ 6.28 km en total
+        archivo = abrir_fixture("track_simple.gpx")
+        datos = parsear_gpx(archivo)
+        assert 5.0 < datos["distancia_km"] < 8.0
+
+
+class TestConTimestamps:
+    def test_tiene_timestamps_true(self):
+        archivo = abrir_fixture("track_con_timestamps.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["tiene_timestamps"] is True
+
+    def test_timestamps_formato_iso(self):
+        archivo = abrir_fixture("track_con_timestamps.gpx")
+        datos = parsear_gpx(archivo)
+        primer_ts = datos["puntos"][0]["timestamp"]
+        assert primer_ts is not None
+        assert "2024-07-15" in primer_ts
+        assert "T" in primer_ts
+
+    def test_todos_los_puntos_tienen_timestamp(self):
+        archivo = abrir_fixture("track_con_timestamps.gpx")
+        datos = parsear_gpx(archivo)
+        assert all(p["timestamp"] is not None for p in datos["puntos"])
+
+
+class TestSinElevacion:
+    def test_distancia_funciona_sin_elevacion(self):
+        archivo = abrir_fixture("track_sin_elevacion.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["distancia_km"] > 0
+
+    def test_altitudes_son_none_sin_elevacion(self):
+        archivo = abrir_fixture("track_sin_elevacion.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["altitud_max_m"] is None
+        assert datos["altitud_min_m"] is None
+        assert datos["altitud_media_m"] is None
+
+    def test_desnivel_cero_sin_elevacion(self):
+        archivo = abrir_fixture("track_sin_elevacion.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["desnivel_positivo_m"] == 0.0
+        assert datos["desnivel_negativo_m"] == 0.0
+
+    def test_elevacion_none_en_puntos(self):
+        archivo = abrir_fixture("track_sin_elevacion.gpx")
+        datos = parsear_gpx(archivo)
+        assert all(p["elevacion_m"] is None for p in datos["puntos"])
+
+
+class TestMultisegmento:
+    def test_concatena_todos_los_segmentos(self):
+        # 2 puntos en seg1 + 2 en seg2 + 1 en track2 = 5 puntos totales
+        archivo = abrir_fixture("track_multisegmento.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["total_puntos"] == 5
+
+    def test_desnivel_acumulado_multisegmento(self):
+        # 1000→1100→1200→1300→1400: D+ = 400, D- = 0
+        archivo = abrir_fixture("track_multisegmento.gpx")
+        datos = parsear_gpx(archivo)
+        assert datos["desnivel_positivo_m"] == pytest.approx(400.0, abs=1.0)
+        assert datos["desnivel_negativo_m"] == pytest.approx(0.0, abs=1.0)
+
+
 class TestErrores:
     def test_extension_incorrecta(self):
         archivo = io.BytesIO(b"<gpx/>")

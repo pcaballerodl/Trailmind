@@ -1,5 +1,4 @@
 import gpxpy
-import gpxpy.gpx
 
 
 def parsear_gpx(archivo):

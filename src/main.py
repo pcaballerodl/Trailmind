@@ -6,7 +6,7 @@ from weather import obtener_prevision
 from ai import generar_plan_stream
 from ai.prompt import construir_sistema, construir_usuario
 from overpass import buscar_pois
-from estimacion import estimar_tiempo
+from estimacion import estimar_tiempo, estimar_tiempo_tramos
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -191,6 +191,39 @@ def calcular_estimacion():
         return jsonify({"ok": True, "estimacion": estimacion})
     except Exception:
         return jsonify({"ok": False, "error": "Error al calcular la estimación"}), 500
+
+
+@app.route("/api/estimacion/tramos", methods=["POST"])
+def calcular_tramos():
+    cuerpo = request.get_json(silent=True)
+    if not cuerpo:
+        return jsonify({"ok": False, "error": "Cuerpo JSON inválido"}), 400
+
+    puntos = cuerpo.get("puntos")
+    if not isinstance(puntos, list) or len(puntos) < 2:
+        return jsonify({"ok": False, "error": "puntos debe ser una lista con al menos 2 elementos"}), 400
+
+    if len(puntos) > 20000:
+        return jsonify({"ok": False, "error": "puntos no puede superar los 20000 elementos"}), 400
+
+    for i, p in enumerate(puntos):
+        if not isinstance(p, dict) or "lat" not in p or "lon" not in p:
+            return jsonify({"ok": False, "error": f"El punto {i} no tiene lat/lon"}), 400
+
+    mes = cuerpo.get("mes")
+    if mes is not None:
+        try:
+            mes = int(mes)
+            if not (1 <= mes <= 12):
+                raise ValueError
+        except (ValueError, TypeError):
+            return jsonify({"ok": False, "error": "mes debe ser un entero entre 1 y 12"}), 400
+
+    try:
+        tramos = estimar_tiempo_tramos(puntos, mes)
+        return jsonify({"ok": True, "tramos": tramos})
+    except Exception:
+        return jsonify({"ok": False, "error": "Error al calcular los tramos"}), 500
 
 
 if __name__ == "__main__":

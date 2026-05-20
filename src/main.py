@@ -6,6 +6,7 @@ from weather import obtener_prevision
 from ai import generar_plan_stream
 from ai.prompt import construir_sistema, construir_usuario
 from overpass import buscar_pois
+from estimacion import estimar_tiempo
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -160,6 +161,36 @@ def puntos_interes():
         return jsonify({"ok": False, "error": str(e)}), 502
     except Exception:
         return jsonify({"ok": False, "error": "Error inesperado al consultar puntos de interés"}), 500
+
+
+@app.route("/api/estimacion/tiempo", methods=["POST"])
+def calcular_estimacion():
+    cuerpo = request.get_json(silent=True)
+    if not cuerpo:
+        return jsonify({"ok": False, "error": "Cuerpo JSON inválido"}), 400
+
+    track = cuerpo.get("track")
+    if not track or not isinstance(track, dict):
+        return jsonify({"ok": False, "error": "Falta el campo 'track'"}), 400
+
+    campos_requeridos = ["distancia_km", "desnivel_positivo_m", "desnivel_negativo_m"]
+    if not all(k in track for k in campos_requeridos):
+        return jsonify({"ok": False, "error": "Faltan campos obligatorios en 'track'"}), 400
+
+    mes = cuerpo.get("mes")
+    if mes is not None:
+        try:
+            mes = int(mes)
+            if not (1 <= mes <= 12):
+                raise ValueError
+        except (ValueError, TypeError):
+            return jsonify({"ok": False, "error": "mes debe ser un entero entre 1 y 12"}), 400
+
+    try:
+        estimacion = estimar_tiempo(track, mes)
+        return jsonify({"ok": True, "estimacion": estimacion})
+    except Exception:
+        return jsonify({"ok": False, "error": "Error al calcular la estimación"}), 500
 
 
 if __name__ == "__main__":

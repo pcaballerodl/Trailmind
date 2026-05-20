@@ -11,6 +11,7 @@ def parsear_gpx(archivo):
         calcular_distancia_total,
         calcular_desnivel,
         calcular_estadisticas_altitud,
+        calcular_tramos_duros,
     )
 
     nombre_archivo = getattr(archivo, "filename", "")
@@ -42,6 +43,7 @@ def parsear_gpx(archivo):
         "altitud_min_m": altitud["min"],
         "altitud_media_m": altitud["media"],
         "tiene_timestamps": tiene_timestamps,
+        "tramos_duros_pct": calcular_tramos_duros(puntos),
         "puntos": puntos,
     }
 

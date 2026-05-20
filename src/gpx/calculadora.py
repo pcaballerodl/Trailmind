@@ -1,6 +1,28 @@
 import gpxpy.geo
 
 
+def calcular_tramos_duros(puntos):
+    """Porcentaje de distancia con pendiente superior al 25%."""
+    dist_total = 0.0
+    dist_dura = 0.0
+
+    for i in range(1, len(puntos)):
+        p1, p2 = puntos[i - 1], puntos[i]
+        if p1["elevacion_m"] is None or p2["elevacion_m"] is None:
+            continue
+        dist_h = gpxpy.geo.haversine_distance(p1["lat"], p1["lon"], p2["lat"], p2["lon"])
+        if dist_h < 0.1:
+            continue
+        pendiente = abs(p2["elevacion_m"] - p1["elevacion_m"]) / dist_h * 100
+        dist_total += dist_h
+        if pendiente > 25:
+            dist_dura += dist_h
+
+    if dist_total == 0:
+        return None
+    return round(dist_dura / dist_total * 100, 1)
+
+
 def calcular_distancia_total(puntos):
     """Distancia total del track en kilómetros."""
     distancia_m = 0.0

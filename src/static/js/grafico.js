@@ -3,8 +3,11 @@ window.TrailMind = window.TrailMind || {};
 window.TrailMind.grafico = (function () {
 
   var instancia = null;
+  var _puntos = null;
 
   function dibujar(puntos) {
+    _puntos = puntos;
+
     var elevaciones = puntos.map(function (p) { return p.elevacion_m; });
     var tieneDatos = elevaciones.some(function (e) { return e !== null; });
 
@@ -60,6 +63,20 @@ window.TrailMind.grafico = (function () {
           mode: "index",
           intersect: false,
         },
+        onHover: function (event, activeElements) {
+          if (!_puntos) return;
+          if (activeElements.length > 0) {
+            var idx = activeElements[0].index;
+            var p = _puntos[idx];
+            if (p && TrailMind.mapa && TrailMind.mapa.mostrarPuntoCursor) {
+              TrailMind.mapa.mostrarPuntoCursor(p.lat, p.lon, p.elevacion_m);
+            }
+          } else {
+            if (TrailMind.mapa && TrailMind.mapa.ocultarPuntoCursor) {
+              TrailMind.mapa.ocultarPuntoCursor();
+            }
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -88,6 +105,13 @@ window.TrailMind.grafico = (function () {
           },
         },
       },
+    });
+
+    // Ocultar marcador al salir del área del gráfico
+    canvas.addEventListener("mouseleave", function () {
+      if (TrailMind.mapa && TrailMind.mapa.ocultarPuntoCursor) {
+        TrailMind.mapa.ocultarPuntoCursor();
+      }
     });
   }
 

@@ -56,54 +56,74 @@
         <div id="stat-nombre" class="nombre-track">—</div>
       </div>
 
-      <div class="grupo-stats">
-        <h2>Distancia y desnivel</h2>
-        <div class="stat-fila">
-          <span class="stat-label">Distancia</span>
-          <span id="stat-distancia" class="stat-valor">—</span>
+      <details class="grupo-stats" open>
+        <summary>Distancia y desnivel</summary>
+        <div class="grupo-stats-contenido">
+          <div class="stat-fila">
+            <span class="stat-label">Distancia</span>
+            <span id="stat-distancia" class="stat-valor">—</span>
+          </div>
+          <div class="stat-fila">
+            <span class="stat-label">Desnivel +</span>
+            <span id="stat-desnivel-pos" class="stat-valor verde">—</span>
+          </div>
+          <div class="stat-fila">
+            <span class="stat-label">Desnivel −</span>
+            <span id="stat-desnivel-neg" class="stat-valor rojo">—</span>
+          </div>
         </div>
-        <div class="stat-fila">
-          <span class="stat-label">Desnivel +</span>
-          <span id="stat-desnivel-pos" class="stat-valor verde">—</span>
-        </div>
-        <div class="stat-fila">
-          <span class="stat-label">Desnivel −</span>
-          <span id="stat-desnivel-neg" class="stat-valor rojo">—</span>
-        </div>
-      </div>
+      </details>
 
-      <div class="grupo-stats">
-        <h2>Altitud</h2>
-        <div class="stat-fila">
-          <span class="stat-label">Máxima</span>
-          <span id="stat-alt-max" class="stat-valor">—</span>
+      <details class="grupo-stats" open>
+        <summary>Altitud</summary>
+        <div class="grupo-stats-contenido">
+          <div class="stat-fila">
+            <span class="stat-label">Máxima</span>
+            <span id="stat-alt-max" class="stat-valor">—</span>
+          </div>
+          <div class="stat-fila">
+            <span class="stat-label">Mínima</span>
+            <span id="stat-alt-min" class="stat-valor">—</span>
+          </div>
+          <div class="stat-fila">
+            <span class="stat-label">Media</span>
+            <span id="stat-alt-media" class="stat-valor">—</span>
+          </div>
         </div>
-        <div class="stat-fila">
-          <span class="stat-label">Mínima</span>
-          <span id="stat-alt-min" class="stat-valor">—</span>
-        </div>
-        <div class="stat-fila">
-          <span class="stat-label">Media</span>
-          <span id="stat-alt-media" class="stat-valor">—</span>
-        </div>
-      </div>
+      </details>
 
-      <div class="grupo-stats">
-        <h2>Detalles</h2>
-        <div class="stat-fila">
-          <span class="stat-label">Puntos</span>
-          <span id="stat-puntos" class="stat-valor">—</span>
+      <details class="grupo-stats">
+        <summary>Detalles</summary>
+        <div class="grupo-stats-contenido">
+          <div class="stat-fila">
+            <span class="stat-label">Puntos</span>
+            <span id="stat-puntos" class="stat-valor">—</span>
+          </div>
+          <div class="stat-fila">
+            <span class="stat-label">Con tiempos</span>
+            <span id="stat-timestamps" class="stat-valor">—</span>
+          </div>
         </div>
-        <div class="stat-fila">
-          <span class="stat-label">Con tiempos</span>
-          <span id="stat-timestamps" class="stat-valor">—</span>
-        </div>
-      </div>
+      </details>
 
     </aside>
 
     <!-- Mapa Leaflet -->
     <section id="panel-mapa">
+      <div class="mapa-controles">
+        <span>Radio búsqueda:</span>
+        <select id="poi-radio">
+          <option value="500">500 m</option>
+          <option value="1000" selected>1 km</option>
+          <option value="2000">2 km</option>
+          <option value="5000">5 km</option>
+        </select>
+        <button id="btn-buscar-poi">Buscar fuentes y refugios</button>
+        <div id="poi-spinner" class="oculto poi-spinner-inline">
+          <div class="rueda-spinner rueda-spinner--pequena"></div>
+        </div>
+        <span id="poi-error" class="oculto poi-error-inline"></span>
+      </div>
       <div id="mapa"></div>
     </section>
 
@@ -120,26 +140,26 @@
 
     <!-- Previsión meteorológica -->
     <section id="panel-meteo">
-      <div class="meteo-cabecera">
-        <h3>Previsión meteorológica</h3>
+      <details class="panel-detalle" open>
+        <summary>Previsión meteorológica</summary>
         <div class="meteo-controles">
           <label for="fecha-expedicion">Fecha inicio:</label>
           <input type="date" id="fecha-expedicion">
           <button id="btn-consultar-meteo">Consultar</button>
         </div>
-      </div>
-      <div id="meteo-spinner" class="oculto">
-        <div class="rueda-spinner rueda-spinner--pequena"></div>
-        Consultando previsión…
-      </div>
-      <div id="meteo-error" class="oculto meteo-error-msg"></div>
-      <div id="meteo-tarjetas" class="meteo-tarjetas"></div>
+        <div id="meteo-spinner" class="oculto">
+          <div class="rueda-spinner rueda-spinner--pequena"></div>
+          Consultando previsión…
+        </div>
+        <div id="meteo-error" class="oculto meteo-error-msg"></div>
+        <div id="meteo-tarjetas" class="meteo-tarjetas"></div>
+      </details>
     </section>
 
     <!-- Plan de expedición IA -->
     <section id="panel-plan">
-      <div class="plan-cabecera">
-        <h3>Plan de expedición</h3>
+      <details class="panel-detalle" open>
+        <summary>Plan de expedición</summary>
         <div class="plan-controles">
           <label for="plan-nivel">Nivel del grupo:</label>
           <select id="plan-nivel">
@@ -154,13 +174,13 @@
           <input type="number" id="plan-personas" value="1" min="1" max="20">
           <button id="btn-generar-plan">Generar plan con IA</button>
         </div>
-      </div>
-      <div id="plan-spinner" class="oculto">
-        <div class="rueda-spinner rueda-spinner--pequena"></div>
-        Generando plan…
-      </div>
-      <div id="plan-error" class="oculto plan-error-msg"></div>
-      <div id="plan-contenido" class="plan-contenido"></div>
+        <div id="plan-spinner" class="oculto">
+          <div class="rueda-spinner rueda-spinner--pequena"></div>
+          Generando plan…
+        </div>
+        <div id="plan-error" class="oculto plan-error-msg"></div>
+        <div id="plan-contenido" class="plan-contenido"></div>
+      </details>
     </section>
 
   </main>
@@ -171,6 +191,7 @@
   <script src="/static/js/grafico.js"></script>
   <script src="/static/js/meteo.js"></script>
   <script src="/static/js/plan.js"></script>
+  <script src="/static/js/poi.js"></script>
   <script src="/static/js/app.js"></script>
 
 </body>

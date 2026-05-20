@@ -5,6 +5,8 @@ window.TrailMind.mapa = (function () {
   var instancia = null;
   var polilinea = null;
   var marcadores = [];
+  var _marcadorCursor = null;
+  var _marcadoresPoi = [];
 
   var MAX_PUNTOS_LEAFLET = 2000;
 
@@ -12,6 +14,8 @@ window.TrailMind.mapa = (function () {
     if (instancia) {
       instancia.remove();
     }
+    _marcadorCursor = null;
+    _marcadoresPoi = [];
     instancia = L.map("mapa").setView([40.4, -3.7], 6);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors",
@@ -29,6 +33,7 @@ window.TrailMind.mapa = (function () {
     }
     marcadores.forEach(function (m) { m.remove(); });
     marcadores = [];
+    limpiarPois();
 
     var puntosParaLeaflet = _muestrear(puntos);
     var coordenadas = puntosParaLeaflet.map(function (p) {
@@ -59,6 +64,49 @@ window.TrailMind.mapa = (function () {
 
     marcadores.push(inicio, fin);
     instancia.fitBounds(polilinea.getBounds(), { padding: [30, 30] });
+  }
+
+  function mostrarPuntoCursor(lat, lon) {
+    if (!instancia) return;
+    if (!_marcadorCursor) {
+      _marcadorCursor = L.circleMarker([lat, lon], {
+        radius: 7,
+        color: "#fff",
+        fillColor: "#2d6a4f",
+        fillOpacity: 1,
+        weight: 2,
+        interactive: false,
+      }).addTo(instancia);
+    } else {
+      _marcadorCursor.setLatLng([lat, lon]);
+    }
+  }
+
+  function ocultarPuntoCursor() {
+    if (_marcadorCursor) {
+      _marcadorCursor.remove();
+      _marcadorCursor = null;
+    }
+  }
+
+  function mostrarPois(pois) {
+    limpiarPois();
+    pois.forEach(function (poi) {
+      var esFuente = poi.tipo === "fuente";
+      var color = esFuente ? "#2980b9" : "#8e44ad";
+      var letra = esFuente ? "A" : "R";
+      var icono = _crearIcono(color, letra);
+      var etiqueta = poi.nombre || (esFuente ? "Fuente de agua" : "Refugio");
+      var marcador = L.marker([poi.lat, poi.lon], { icon: icono })
+        .bindTooltip(etiqueta)
+        .addTo(instancia);
+      _marcadoresPoi.push(marcador);
+    });
+  }
+
+  function limpiarPois() {
+    _marcadoresPoi.forEach(function (m) { m.remove(); });
+    _marcadoresPoi = [];
   }
 
   // Devuelve un subconjunto uniforme si el track es muy denso
@@ -96,6 +144,10 @@ window.TrailMind.mapa = (function () {
   return {
     inicializar: inicializar,
     dibujar: dibujar,
+    mostrarPuntoCursor: mostrarPuntoCursor,
+    ocultarPuntoCursor: ocultarPuntoCursor,
+    mostrarPois: mostrarPois,
+    limpiarPois: limpiarPois,
   };
 
 })();

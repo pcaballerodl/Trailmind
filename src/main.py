@@ -5,6 +5,7 @@ from gpx import parsear_gpx
 from weather import obtener_prevision
 from ai import generar_plan_stream
 from ai.prompt import construir_sistema, construir_usuario
+from overpass import buscar_pois
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -126,6 +127,39 @@ def generar_plan_ia():
         mimetype="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.route("/api/mapa/puntos-interes", methods=["POST"])
+def puntos_interes():
+    cuerpo = request.get_json(silent=True)
+    if not cuerpo:
+        return jsonify({"ok": False, "error": "Cuerpo JSON inválido"}), 400
+
+    bbox = cuerpo.get("bbox")
+    if not isinstance(bbox, dict) or not all(
+        k in bbox for k in ("min_lat", "max_lat", "min_lon", "max_lon")
+    ):
+        return jsonify({"ok": False, "error": "Falta o es inválido el campo 'bbox'"}), 400
+
+    try:
+        radio_m = int(cuerpo.get("radio_m", 1000))
+        if not (100 <= radio_m <= 5000):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "radio_m debe ser un entero entre 100 y 5000"}), 400
+
+    tipos = cuerpo.get("tipos", ["fuente", "refugio"])
+    tipos_validos = {"fuente", "refugio"}
+    if not isinstance(tipos, list) or not tipos or not all(t in tipos_validos for t in tipos):
+        return jsonify({"ok": False, "error": "tipos debe ser una lista con 'fuente' y/o 'refugio'"}), 400
+
+    try:
+        pois = buscar_pois(bbox, radio_m, tipos)
+        return jsonify({"ok": True, "pois": pois})
+    except RuntimeError as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
+    except Exception:
+        return jsonify({"ok": False, "error": "Error inesperado al consultar puntos de interés"}), 500
 
 
 if __name__ == "__main__":

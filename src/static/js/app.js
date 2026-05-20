@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var btnNuevoTrack = document.getElementById("btn-nuevo-track");
   var btnConsultarMeteo = document.getElementById("btn-consultar-meteo");
   var btnGenerarPlan = document.getElementById("btn-generar-plan");
+  var btnBuscarPoi = document.getElementById("btn-buscar-poi");
 
   // Abrir selector de archivo al pulsar el botón
   btnSeleccionar.addEventListener("click", function () {
@@ -49,8 +50,13 @@ document.addEventListener("DOMContentLoaded", function () {
     TrailMind.plan.generar();
   });
 
+  btnBuscarPoi.addEventListener("click", function () {
+    TrailMind.poi.buscar();
+  });
+
   // Volver a la pantalla de carga
   btnNuevoTrack.addEventListener("click", function () {
+    TrailMind.poi.limpiar();
     dashboard.classList.add("oculto");
     zonaCarga.classList.remove("oculto");
     ocultarError();
@@ -106,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
     TrailMind.estadisticas.mostrar(datos);
     TrailMind.meteo.establecerCoordenadas(datos.puntos[0].lat, datos.puntos[0].lon);
     TrailMind.plan.establecerTrack(datos);
+    TrailMind.poi.establecerBbox(datos.puntos);
   }
 
   function mostrarSpinner(visible) {

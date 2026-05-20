@@ -11,9 +11,10 @@ document.addEventListener("DOMContentLoaded", function () {
   var btnConsultarMeteo = document.getElementById("btn-consultar-meteo");
   var btnGenerarPlan = document.getElementById("btn-generar-plan");
   var btnBuscarPoi = document.getElementById("btn-buscar-poi");
+  var btnGradiente = document.getElementById("btn-gradiente");
+  var btnPantallaCompleta = document.getElementById("btn-pantalla-completa");
   var sliderPoi = document.getElementById("poi-radio");
 
-  // Inicializar slider y enlazar actualización en tiempo real
   if (sliderPoi) {
     _actualizarSlider(sliderPoi);
     sliderPoi.addEventListener("input", function () {
@@ -21,12 +22,29 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Toggles de tipo POI (💧 / ⛺)
+  // Toggles visuales de tipo POI y gradiente
   document.querySelectorAll(".poi-toggle").forEach(function (btn) {
     btn.addEventListener("click", function () {
       this.classList.toggle("activo");
     });
   });
+
+  // Lógica específica del gradiente (aparte del toggle visual)
+  if (btnGradiente) {
+    btnGradiente.addEventListener("click", function () {
+      TrailMind.mapa.toggleGradiente();
+    });
+  }
+
+  // Pantalla completa del mapa
+  if (btnPantallaCompleta) {
+    btnPantallaCompleta.addEventListener("click", function () {
+      dashboard.classList.toggle("mapa-completo");
+      setTimeout(function () {
+        TrailMind.mapa.invalidarTamano();
+      }, 50);
+    });
+  }
 
   btnSeleccionar.addEventListener("click", function () {
     inputArchivo.click();
@@ -38,7 +56,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Drag & drop
   dropZone.addEventListener("dragover", function (e) {
     e.preventDefault();
     dropZone.classList.add("arrastrando");
@@ -71,6 +88,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   btnNuevoTrack.addEventListener("click", function () {
     TrailMind.poi.limpiar();
+    // Salir de pantalla completa si estaba activa
+    dashboard.classList.remove("mapa-completo");
     dashboard.classList.add("oculto");
     zonaCarga.classList.remove("oculto");
     btnNuevoTrack.classList.add("oculto");
@@ -115,7 +134,9 @@ document.addEventListener("DOMContentLoaded", function () {
     dashboard.classList.remove("oculto");
     btnNuevoTrack.classList.remove("oculto");
 
-    // Forzar reflow para que Leaflet calcule dimensiones correctas
+    // Restablecer estado del botón de gradiente
+    if (btnGradiente) btnGradiente.classList.remove("activo");
+
     window.dispatchEvent(new Event("resize"));
 
     TrailMind.mapa.inicializar();
@@ -125,6 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
     TrailMind.meteo.establecerCoordenadas(datos.puntos[0].lat, datos.puntos[0].lon);
     TrailMind.plan.establecerTrack(datos);
     TrailMind.poi.establecerBbox(datos.puntos);
+    TrailMind.estimacion.establecerTrack(datos);
+    TrailMind.estimacion.cargar();
   }
 
   function mostrarSpinner(visible) {
@@ -142,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
     mensajeError.textContent = "";
   }
 
-  // Actualiza el fondo degradado del slider y la etiqueta de valor
   function _actualizarSlider(slider) {
     var val = parseInt(slider.value, 10);
     var pct = ((val - 100) / (5000 - 100)) * 100;

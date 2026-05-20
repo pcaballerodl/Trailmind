@@ -16,6 +16,14 @@ document.addEventListener("DOMContentLoaded", function () {
   var btnLimpiarSeleccion = document.getElementById("btn-limpiar-seleccion");
   var selectorModo        = document.getElementById("selector-modo");
   var sliderPoi           = document.getElementById("poi-radio");
+  var inputHoraSalida     = document.getElementById("hora-salida");
+  var inputItinerarioDias = document.getElementById("itinerario-dias");
+  var btnSugerirCheckp    = document.getElementById("btn-sugerir-checkpoints");
+  var btnLimpiarCheckp    = document.getElementById("btn-limpiar-checkpoints");
+  var btnModoCheckpoint   = document.getElementById("btn-modo-checkpoint");
+  var modalCheckpoint     = document.getElementById("modal-checkpoint");
+  var btnModalOk          = document.getElementById("modal-cp-ok");
+  var btnModalCancelar    = document.getElementById("modal-cp-cancelar");
 
   // ── Slider radio POI ────────────────────────────────────────────────────────
   if (sliderPoi) {
@@ -47,8 +55,93 @@ document.addEventListener("DOMContentLoaded", function () {
   if (selectorModo) {
     selectorModo.addEventListener("change", function () {
       TrailMind.estimacion.setModo(this.value);
+      TrailMind.itinerario.setModo(this.value);
     });
   }
+
+  // ── Hora de salida ────────────────────────────────────────────────────────────
+  if (inputHoraSalida) {
+    inputHoraSalida.addEventListener("change", function () {
+      TrailMind.itinerario.setHoraSalida(this.value);
+    });
+  }
+
+  // ── Días del track ───────────────────────────────────────────────────────────
+  // (se lee en tiempo real al pulsar "Sugerir")
+
+  // ── Sugerir checkpoints ──────────────────────────────────────────────────────
+  if (btnSugerirCheckp) {
+    btnSugerirCheckp.addEventListener("click", function () {
+      var dias = parseInt(inputItinerarioDias ? inputItinerarioDias.value : "1", 10) || 1;
+      TrailMind.itinerario.sugerir(dias);
+    });
+  }
+
+  // ── Limpiar checkpoints ──────────────────────────────────────────────────────
+  if (btnLimpiarCheckp) {
+    btnLimpiarCheckp.addEventListener("click", function () {
+      TrailMind.itinerario.limpiar();
+    });
+  }
+
+  // ── Modo añadir checkpoint manual ────────────────────────────────────────────
+  if (btnModoCheckpoint) {
+    btnModoCheckpoint.addEventListener("click", function () {
+      var activo = btnModoCheckpoint.classList.toggle("activo");
+      TrailMind.itinerario.setModoAnadir(activo);
+      if (activo) {
+        TrailMind.mapa.activarModoCheckpoint();
+      } else {
+        TrailMind.mapa.desactivarModoCheckpoint();
+      }
+    });
+  }
+
+  // ── Modal checkpoint ─────────────────────────────────────────────────────────
+  function cerrarModal() {
+    if (modalCheckpoint) modalCheckpoint.classList.add("oculto");
+  }
+
+  if (btnModalOk) {
+    btnModalOk.addEventListener("click", function () {
+      var tipo     = document.getElementById("modal-cp-tipo");
+      var etiqueta = document.getElementById("modal-cp-etiqueta");
+      var duracion = document.getElementById("modal-cp-duracion");
+      var lat      = parseFloat(document.getElementById("modal-cp-lat").value);
+      var lon      = parseFloat(document.getElementById("modal-cp-lon").value);
+      var indice   = parseInt(document.getElementById("modal-cp-indice").value, 10);
+      var km       = parseFloat(document.getElementById("modal-cp-km").value);
+      var alt      = parseFloat(document.getElementById("modal-cp-alt").value);
+
+      if (isNaN(indice)) { cerrarModal(); return; }
+
+      TrailMind.itinerario.agregarManual({
+        tipo:        tipo     ? tipo.value         : "poi",
+        etiqueta:    etiqueta ? etiqueta.value      : "",
+        duracion_min: duracion ? parseInt(duracion.value, 10) || 15 : 15,
+        lat:         isNaN(lat) ? null : lat,
+        lon:         isNaN(lon) ? null : lon,
+        indice:      indice,
+        km_acum:     isNaN(km)  ? 0   : km,
+        alt_m:       isNaN(alt) ? null : alt,
+      });
+      cerrarModal();
+    });
+  }
+
+  if (btnModalCancelar) {
+    btnModalCancelar.addEventListener("click", cerrarModal);
+  }
+
+  if (modalCheckpoint) {
+    modalCheckpoint.addEventListener("click", function (e) {
+      if (e.target === modalCheckpoint) cerrarModal();
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") cerrarModal();
+  });
 
   // ── Limpiar selección de tramo ───────────────────────────────────────────────
   if (btnLimpiarSeleccion) {
@@ -84,6 +177,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   btnNuevoTrack.addEventListener("click", function () {
     TrailMind.poi.limpiar();
+    TrailMind.itinerario.limpiar();
+    if (btnModoCheckpoint) btnModoCheckpoint.classList.remove("activo");
+    TrailMind.mapa.desactivarModoCheckpoint();
     dashboard.classList.remove("mapa-completo");
     dashboard.classList.add("oculto");
     zonaCarga.classList.remove("oculto");
@@ -126,8 +222,11 @@ document.addEventListener("DOMContentLoaded", function () {
     btnNuevoTrack.classList.remove("oculto");
 
     // Restablecer controles
-    if (btnGradiente)  btnGradiente.classList.remove("activo");
-    if (selectorModo)  selectorModo.value = "optimo";
+    if (btnGradiente)    btnGradiente.classList.remove("activo");
+    if (btnModoCheckpoint) btnModoCheckpoint.classList.remove("activo");
+    if (selectorModo)    selectorModo.value = "optimo";
+    if (inputHoraSalida) inputHoraSalida.value = "08:00";
+    TrailMind.mapa.desactivarModoCheckpoint();
 
     window.dispatchEvent(new Event("resize"));
 

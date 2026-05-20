@@ -2,18 +2,20 @@ window.TrailMind = window.TrailMind || {};
 
 window.TrailMind.mapa = (function () {
 
-  var instancia       = null;
-  var polilinea       = null;
-  var _polylineGhost  = null;   // polilínea invisible para captura de hover
-  var _polylineTramo  = null;   // polilínea resaltada del tramo seleccionado
-  var marcadores      = [];
-  var _marcadorCursor = null;
-  var _marcadoresPoi  = [];
+  var instancia          = null;
+  var polilinea          = null;
+  var _polylineGhost     = null;   // polilínea invisible para captura de hover
+  var _polylineTramo     = null;   // polilínea resaltada del tramo seleccionado
+  var marcadores         = [];
+  var _marcadorCursor    = null;
+  var _marcadoresPoi     = [];
+  var _marcadoresCheckp  = [];     // marcadores de checkpoints
   var _segmentosGradiente = [];
-  var _modoGradiente  = false;
-  var _controlLeyenda = null;
-  var _puntosActuales = null;   // array completo (sin subsampling)
-  var _puntosSubmuestra = null; // array subsampled usado en Leaflet
+  var _modoGradiente     = false;
+  var _modoAnadirCheckp  = false;  // cursor modo añadir checkpoint
+  var _controlLeyenda    = null;
+  var _puntosActuales    = null;   // array completo (sin subsampling)
+  var _puntosSubmuestra  = null;   // array subsampled usado en Leaflet
 
   var MAX_PUNTOS_LEAFLET = 2000;
   var CLAVE_CAPA = "trailmind_capa_activa";
@@ -24,15 +26,17 @@ window.TrailMind.mapa = (function () {
     if (instancia) {
       instancia.remove();
     }
-    _marcadorCursor     = null;
-    _marcadoresPoi      = [];
+    _marcadorCursor    = null;
+    _marcadoresPoi     = [];
+    _marcadoresCheckp  = [];
     _segmentosGradiente = [];
-    _modoGradiente      = false;
-    _controlLeyenda     = null;
-    _puntosActuales     = null;
-    _puntosSubmuestra   = null;
-    _polylineGhost      = null;
-    _polylineTramo      = null;
+    _modoGradiente     = false;
+    _modoAnadirCheckp  = false;
+    _controlLeyenda    = null;
+    _puntosActuales    = null;
+    _puntosSubmuestra  = null;
+    _polylineGhost     = null;
+    _polylineTramo     = null;
 
     instancia = L.map("mapa").setView([40.4, -3.7], 6);
 
@@ -194,9 +198,91 @@ window.TrailMind.mapa = (function () {
     }
   }
 
-  // Stub Fase 2: renderizar checkpoints en el mapa
   function renderCheckpoints(checkpoints) {
-    // Fase 2: pintar marcadores L.marker para cada checkpoint
+    // Limpiar marcadores anteriores
+    _marcadoresCheckp.forEach(function (m) { m.remove(); });
+    _marcadoresCheckp = [];
+
+    if (!instancia || !checkpoints || !checkpoints.length) return;
+
+    checkpoints.forEach(function (cp) {
+      if (cp.lat == null || cp.lon == null) return;
+      var icono   = _crearIconoCheckpoint(cp.tipo);
+      var popup   = _contenidoPopupCheckpoint(cp);
+      var marcador = L.marker([cp.lat, cp.lon], { icon: icono, zIndexOffset: 500 })
+        .bindPopup(popup)
+        .addTo(instancia);
+      _marcadoresCheckp.push(marcador);
+    });
+  }
+
+  function activarModoCheckpoint() {
+    _modoAnadirCheckp = true;
+    if (instancia) {
+      L.DomUtil.addClass(instancia.getContainer(), "cursor-crosshair");
+      instancia.on("click", _onMapClickCheckpoint);
+    }
+  }
+
+  function desactivarModoCheckpoint() {
+    _modoAnadirCheckp = false;
+    if (instancia) {
+      L.DomUtil.removeClass(instancia.getContainer(), "cursor-crosshair");
+      instancia.off("click", _onMapClickCheckpoint);
+    }
+  }
+
+  function _onMapClickCheckpoint(e) {
+    if (!_modoAnadirCheckp || !_puntosActuales) return;
+    var lat = e.latlng.lat;
+    var lon = e.latlng.lng;
+
+    // Encontrar el punto del track más cercano al click
+    var idx = _encontrarIndiceMasCercanoLngLat(lat, lon, _puntosActuales);
+
+    if (TrailMind.itinerario && TrailMind.itinerario.abrirModalCheckpoint) {
+      TrailMind.itinerario.abrirModalCheckpoint(lat, lon, idx);
+    }
+  }
+
+  function _encontrarIndiceMasCercanoLngLat(lat, lon, puntos) {
+    var minDist = Infinity;
+    var minIdx  = 0;
+    for (var i = 0; i < puntos.length; i++) {
+      var p = puntos[i];
+      var d = (p.lat - lat) * (p.lat - lat) + (p.lon - lon) * (p.lon - lon);
+      if (d < minDist) { minDist = d; minIdx = i; }
+    }
+    return minIdx;
+  }
+
+  function _crearIconoCheckpoint(tipo) {
+    var emojis = { comida: "🍽️", campamento: "⛺", poi: "📍" };
+    var colores = { comida: "#f4845f", campamento: "#5390d9", poi: "#9b5de5" };
+    var emoji = emojis[tipo]  || "📍";
+    var color = colores[tipo] || "#888";
+    return L.divIcon({
+      className: "",
+      html: '<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;' +
+            'font-size:17px;background:' + color + ';border-radius:50%;' +
+            'box-shadow:0 2px 10px rgba(0,0,0,0.3);border:2.5px solid #fff">' +
+            emoji + "</div>",
+      iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -20],
+    });
+  }
+
+  function _contenidoPopupCheckpoint(cp) {
+    return '<div class="poi-popup">' +
+      '<div class="poi-popup-tipo">' + (cp.etiqueta || cp.tipo) + '</div>' +
+      '<div class="poi-popup-nombre">' +
+        'km ' + (cp.km_acum || 0).toFixed(1) +
+        (cp.alt_m ? ' · ' + Math.round(cp.alt_m) + ' m' : '') +
+      '</div>' +
+      (cp.poi_cercano
+        ? '<div class="poi-popup-coords">📌 ' + (cp.poi_cercano.nombre || cp.poi_cercano.tipo) +
+          ' (' + cp.poi_cercano.distancia_m + ' m)</div>'
+        : '') +
+    '</div>';
   }
 
   // ── Cursor hover gráfico → mapa ──────────────────────────────────────────────
@@ -420,17 +506,19 @@ window.TrailMind.mapa = (function () {
   }
 
   return {
-    inicializar:          inicializar,
-    dibujar:              dibujar,
-    mostrarPuntoCursor:   mostrarPuntoCursor,
-    ocultarPuntoCursor:   ocultarPuntoCursor,
-    mostrarPois:          mostrarPois,
-    limpiarPois:          limpiarPois,
-    toggleGradiente:      toggleGradiente,
-    invalidarTamano:      invalidarTamano,
-    resaltarTramo:        resaltarTramo,
-    limpiarTramoResaltado: limpiarTramoResaltado,
-    renderCheckpoints:    renderCheckpoints,
+    inicializar:             inicializar,
+    dibujar:                 dibujar,
+    mostrarPuntoCursor:      mostrarPuntoCursor,
+    ocultarPuntoCursor:      ocultarPuntoCursor,
+    mostrarPois:             mostrarPois,
+    limpiarPois:             limpiarPois,
+    toggleGradiente:         toggleGradiente,
+    invalidarTamano:         invalidarTamano,
+    resaltarTramo:           resaltarTramo,
+    limpiarTramoResaltado:   limpiarTramoResaltado,
+    renderCheckpoints:       renderCheckpoints,
+    activarModoCheckpoint:   activarModoCheckpoint,
+    desactivarModoCheckpoint: desactivarModoCheckpoint,
   };
 
 })();

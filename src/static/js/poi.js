@@ -3,6 +3,7 @@ window.TrailMind = window.TrailMind || {};
 window.TrailMind.poi = (function () {
 
   var _bbox = null;
+  var _pois = [];   // último resultado de búsqueda
 
   function establecerBbox(puntos) {
     if (!puntos || puntos.length === 0) return;
@@ -50,6 +51,7 @@ window.TrailMind.poi = (function () {
       .then(function (r) { return r.json(); })
       .then(function (json) {
         if (json.ok) {
+          _pois = json.pois;
           TrailMind.mapa.mostrarPois(json.pois);
           _mostrarContador(json.pois);
         } else {
@@ -71,8 +73,11 @@ window.TrailMind.poi = (function () {
       });
   }
 
+  function obtenerPois() { return _pois; }
+
   function limpiar() {
     _bbox = null;
+    _pois = [];
     var contador = document.getElementById("poi-contador");
     if (contador) contador.classList.add("oculto");
     var error = document.getElementById("poi-error");
@@ -108,8 +113,9 @@ window.TrailMind.poi = (function () {
 
   return {
     establecerBbox: establecerBbox,
-    buscar: buscar,
-    limpiar: limpiar,
+    buscar:         buscar,
+    limpiar:        limpiar,
+    obtenerPois:    obtenerPois,
   };
 
 })();

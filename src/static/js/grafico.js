@@ -2,9 +2,11 @@ window.TrailMind = window.TrailMind || {};
 
 window.TrailMind.grafico = (function () {
 
-  var instancia  = null;
-  var _puntos    = null;
+  var instancia   = null;
+  var _puntos     = null;
   var _distancias = null;  // km acumulados por índice
+  var _checkpoints = [];   // checkpoints actuales para el plugin
+  var _horasCheckpoints = [];  // horas calculadas por itinerario
 
   // Estado de la selección de tramo
   var _sel = {
@@ -35,6 +37,51 @@ window.TrailMind.grafico = (function () {
       ctx.setLineDash([5, 4]);
       ctx.stroke();
       ctx.restore();
+    },
+  };
+
+  // ── Plugin checkpoints (líneas verticales) ──────────────────────────────────
+  var pluginCheckpoints = {
+    id: "checkpoints",
+    afterDraw: function (chart) {
+      if (!_checkpoints.length || !_puntos) return;
+      var ca  = chart.chartArea;
+      var ctx = chart.ctx;
+      var n   = _puntos.length - 1;
+
+      var colores = { comida: "#f4845f", campamento: "#5390d9", poi: "#9b5de5" };
+      var emojis  = { comida: "🍽", campamento: "⛺", poi: "📍" };
+
+      _checkpoints.forEach(function (cp, i) {
+        var ratio  = n > 0 ? cp.indice / n : 0;
+        var xPos   = ca.left + ratio * (ca.right - ca.left);
+        var color  = colores[cp.tipo] || "#888";
+        var emoji  = emojis[cp.tipo]  || "📍";
+        var hora   = _horasCheckpoints[i] ? _horasCheckpoints[i].llegada : null;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xPos, ca.top);
+        ctx.lineTo(xPos, ca.bottom);
+        ctx.lineWidth   = 1.5;
+        ctx.strokeStyle = color;
+        ctx.setLineDash([4, 3]);
+        ctx.stroke();
+        ctx.restore();
+
+        // Etiqueta hora
+        if (hora !== null) {
+          var h   = Math.floor(((hora % 1440) + 1440) % 1440 / 60);
+          var mm  = Math.round(((hora % 1440) + 1440) % 1440 % 60);
+          var txt = (h < 10 ? "0" + h : h) + ":" + (mm < 10 ? "0" + mm : mm);
+          ctx.save();
+          ctx.font         = "bold 9px Inter,sans-serif";
+          ctx.fillStyle    = color;
+          ctx.textAlign    = "center";
+          ctx.fillText(emoji + " " + txt, xPos, ca.top + 10);
+          ctx.restore();
+        }
+      });
     },
   };
 
@@ -92,7 +139,7 @@ window.TrailMind.grafico = (function () {
 
     instancia = new Chart(ctx, {
       type: "line",
-      plugins: [pluginCrosshair, pluginSeleccion],
+      plugins: [pluginCrosshair, pluginSeleccion, pluginCheckpoints],
       data: {
         labels: etiquetas,
         datasets: [{
@@ -284,9 +331,10 @@ window.TrailMind.grafico = (function () {
     }
   }
 
-  // Stubs Fase 2: renderizar checkpoints sobre el perfil
-  function renderCheckpoints(checkpoints) {
-    // Fase 2: pintar marcadores verticales en el gráfico por índice
+  function renderCheckpoints(checkpoints, horas) {
+    _checkpoints      = checkpoints || [];
+    _horasCheckpoints = horas       || [];
+    if (instancia) instancia.draw();
   }
 
   // ── Helpers privados ─────────────────────────────────────────────────────────

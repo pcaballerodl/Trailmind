@@ -182,6 +182,11 @@
             📐 Pendiente
           </button>
 
+          <!-- Modo añadir checkpoint manual -->
+          <button class="poi-toggle" id="btn-modo-checkpoint" title="Añadir checkpoint manualmente">
+            📌 Checkpoint
+          </button>
+
           <!-- Pantalla completa -->
           <button id="btn-pantalla-completa" title="Mapa a pantalla completa">
             <svg class="icono-expandir" width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -227,6 +232,26 @@
         </div>
       </section>
 
+      <!-- Itinerario -->
+      <section id="panel-itinerario">
+        <details class="panel-detalle" open>
+          <summary>Itinerario</summary>
+          <div class="it-controles">
+            <label for="hora-salida">Salida:</label>
+            <input type="time" id="hora-salida" value="08:00">
+            <label for="itinerario-dias">Días:</label>
+            <input type="number" id="itinerario-dias" value="1" min="1" max="14">
+            <button id="btn-sugerir-checkpoints">Sugerir checkpoints</button>
+            <button id="btn-limpiar-checkpoints" class="btn-limpiar-sel">Limpiar</button>
+          </div>
+          <div id="itinerario-spinner" class="oculto meteo-spinner-fila">
+            <div class="rueda-spinner rueda-spinner--pequena"></div>
+            Calculando…
+          </div>
+          <div id="itinerario-timeline"></div>
+        </details>
+      </section>
+
       <!-- Plan IA -->
       <section id="panel-plan">
         <details class="panel-detalle" open>
@@ -258,6 +283,39 @@
 
   </main>
 
+  <!-- Modal añadir checkpoint -->
+  <div id="modal-checkpoint" class="modal-fondo oculto">
+    <div class="modal-contenido">
+      <h3 class="modal-titulo">Añadir checkpoint</h3>
+      <div class="modal-fila">
+        <label for="modal-cp-tipo">Tipo:</label>
+        <select id="modal-cp-tipo">
+          <option value="comida">🍽️ Comida</option>
+          <option value="campamento">⛺ Campamento</option>
+          <option value="poi">📍 Punto de interés</option>
+        </select>
+      </div>
+      <div class="modal-fila">
+        <label for="modal-cp-etiqueta">Nombre:</label>
+        <input type="text" id="modal-cp-etiqueta" placeholder="Ej: Parada comida">
+      </div>
+      <div class="modal-fila">
+        <label for="modal-cp-duracion">Duración (min):</label>
+        <input type="number" id="modal-cp-duracion" value="45" min="0" max="999">
+      </div>
+      <div class="modal-info">
+        km <span id="modal-cp-km">—</span> · <span id="modal-cp-alt">—</span> m
+      </div>
+      <input type="hidden" id="modal-cp-lat">
+      <input type="hidden" id="modal-cp-lon">
+      <input type="hidden" id="modal-cp-indice">
+      <div class="modal-botones">
+        <button id="modal-cp-ok">Añadir</button>
+        <button id="modal-cp-cancelar" class="btn-secundario">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Módulos JS (orden importa) -->
   <script src="/static/js/estadisticas.js"></script>
   <script src="/static/js/mapa.js"></script>
@@ -266,6 +324,7 @@
   <script src="/static/js/plan.js"></script>
   <script src="/static/js/poi.js"></script>
   <script src="/static/js/estimacion.js"></script>
+  <script src="/static/js/itinerario.js"></script>
   <script src="/static/js/app.js"></script>
 
 </body>

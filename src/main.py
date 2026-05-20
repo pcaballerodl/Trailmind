@@ -7,6 +7,7 @@ from ai import generar_plan_stream
 from ai.prompt import construir_sistema, construir_usuario
 from overpass import buscar_pois
 from estimacion import estimar_tiempo, estimar_tiempo_tramos
+from itinerario import sugerir_checkpoints
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -224,6 +225,38 @@ def calcular_tramos():
         return jsonify({"ok": True, "tramos": tramos})
     except Exception:
         return jsonify({"ok": False, "error": "Error al calcular los tramos"}), 500
+
+
+@app.route("/api/itinerario/sugerir", methods=["POST"])
+def sugerir_itinerario():
+    cuerpo = request.get_json(silent=True)
+    if not cuerpo:
+        return jsonify({"ok": False, "error": "Cuerpo JSON inválido"}), 400
+
+    tramos = cuerpo.get("tramos")
+    if not isinstance(tramos, list) or len(tramos) < 2:
+        return jsonify({"ok": False, "error": "tramos debe ser una lista con al menos 2 elementos"}), 400
+
+    pois = cuerpo.get("pois", [])
+    if not isinstance(pois, list):
+        return jsonify({"ok": False, "error": "pois debe ser una lista"}), 400
+
+    try:
+        dias = int(cuerpo.get("dias", 1))
+        if not (1 <= dias <= 14):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "dias debe ser un entero entre 1 y 14"}), 400
+
+    modo = cuerpo.get("modo", "optimo")
+    if modo not in ("optimo", "desfavorable"):
+        return jsonify({"ok": False, "error": "modo debe ser 'optimo' o 'desfavorable'"}), 400
+
+    try:
+        checkpoints = sugerir_checkpoints(tramos, pois, dias, modo)
+        return jsonify({"ok": True, "checkpoints": checkpoints})
+    except Exception:
+        return jsonify({"ok": False, "error": "Error al sugerir checkpoints"}), 500
 
 
 if __name__ == "__main__":

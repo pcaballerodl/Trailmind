@@ -4,7 +4,20 @@
       "Bash(pip install *)",
       "Bash(python -m pytest tests/test_gpx_parser.py -v)",
       "Bash(git commit -m ' *)",
-      "Bash(dir /s /b)"
+      "Bash(dir /s /b)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(py -m pytest tests/ -v --tb=short)",
+      "Bash(docker exec *)",
+      "Bash(docker cp *)",
+      "Bash(curl -s http://localhost:8080/)",
+      "Bash(curl -s http://localhost:8080/static/js/mapa.js)",
+      "Bash(cat docker-compose.yml)",
+      "Bash(cat docker-compose.yaml)",
+      "Bash(docker compose *)",
+      "Bash(curl -s http://localhost:8080/static/js/app.js)",
+      "Bash(curl -s http://localhost:8080/static/js/grafico.js)",
+      "Bash(curl -s -X POST http://localhost:8080/api/estimacion/tramos -H \"Content-Type: application/json\" -d \"{\\\\\"puntos\\\\\":[{\\\\\"lat\\\\\":42.1,\\\\\"lon\\\\\":0.5,\\\\\"elevacion_m\\\\\":1200},{\\\\\"lat\\\\\":42.11,\\\\\"lon\\\\\":0.51,\\\\\"elevacion_m\\\\\":1350},{\\\\\"lat\\\\\":42.12,\\\\\"lon\\\\\":0.52,\\\\\"elevacion_m\\\\\":1280}],\\\\\"mes\\\\\":6}\")",
+      "Bash(python -m pytest tests/test_itinerario.py -v)"
     ]
   }
 }

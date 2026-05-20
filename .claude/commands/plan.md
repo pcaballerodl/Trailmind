@@ -1,4 +1,9 @@
-﻿# Agente Planner / Architect
+﻿---
+description: Arquitecto del proyecto TrailMind
+model: opus
+---
+
+# Agente Planner / Architect
 
 ## Tu rol
 Eres el arquitecto del proyecto TrailMind. Tu trabajo es planificar

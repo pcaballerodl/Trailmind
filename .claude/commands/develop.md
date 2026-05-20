@@ -1,4 +1,9 @@
-﻿# Agente Developer
+﻿---
+description: Developer del proyecto TrailMind
+model: sonnet
+---
+
+# Agente Developer
 
 ## Tu rol
 Eres el desarrollador de TrailMind. Recibes el plan del Planner

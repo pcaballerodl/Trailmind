@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TrailMind — Planificador de Expediciones</title>
 
+  <!-- Fuente Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -51,7 +55,7 @@
     <!-- Panel lateral de estadísticas -->
     <aside id="panel-stats">
 
-      <div>
+      <div class="track-cabecera">
         <h2>Track</h2>
         <div id="stat-nombre" class="nombre-track">—</div>
       </div>
@@ -93,10 +97,10 @@
       </details>
 
       <details class="grupo-stats">
-        <summary>Detalles</summary>
+        <summary>Detalles del track</summary>
         <div class="grupo-stats-contenido">
           <div class="stat-fila">
-            <span class="stat-label">Puntos</span>
+            <span class="stat-label">Puntos GPS</span>
             <span id="stat-puntos" class="stat-valor">—</span>
           </div>
           <div class="stat-fila">
@@ -111,17 +115,20 @@
     <!-- Mapa Leaflet -->
     <section id="panel-mapa">
       <div class="mapa-controles">
-        <span>Radio búsqueda:</span>
-        <select id="poi-radio">
-          <option value="500">500 m</option>
-          <option value="1000" selected>1 km</option>
-          <option value="2000">2 km</option>
-          <option value="5000">5 km</option>
-        </select>
-        <button id="btn-buscar-poi">Buscar fuentes y refugios</button>
+        <div class="poi-tipos">
+          <button class="poi-toggle activo" id="toggle-fuentes">💧 Fuentes</button>
+          <button class="poi-toggle activo" id="toggle-refugios">⛺ Refugios</button>
+        </div>
+        <div class="poi-radio-grupo">
+          <input type="range" id="poi-radio" min="100" max="5000" step="100" value="1000"
+                 aria-label="Radio de búsqueda de puntos de interés">
+          <span id="poi-radio-valor" class="poi-radio-valor">1 km</span>
+        </div>
+        <button id="btn-buscar-poi">Buscar</button>
         <div id="poi-spinner" class="oculto poi-spinner-inline">
           <div class="rueda-spinner rueda-spinner--pequena"></div>
         </div>
+        <span id="poi-contador" class="oculto poi-contador"></span>
         <span id="poi-error" class="oculto poi-error-inline"></span>
       </div>
       <div id="mapa"></div>
@@ -147,7 +154,7 @@
           <input type="date" id="fecha-expedicion">
           <button id="btn-consultar-meteo">Consultar</button>
         </div>
-        <div id="meteo-spinner" class="oculto">
+        <div id="meteo-spinner" class="oculto meteo-spinner-fila">
           <div class="rueda-spinner rueda-spinner--pequena"></div>
           Consultando previsión…
         </div>
@@ -174,7 +181,7 @@
           <input type="number" id="plan-personas" value="1" min="1" max="20">
           <button id="btn-generar-plan">Generar plan con IA</button>
         </div>
-        <div id="plan-spinner" class="oculto">
+        <div id="plan-spinner" class="oculto plan-spinner-fila">
           <div class="rueda-spinner rueda-spinner--pequena"></div>
           Generando plan…
         </div>

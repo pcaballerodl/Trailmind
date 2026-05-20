@@ -5,6 +5,28 @@ window.TrailMind.grafico = (function () {
   var instancia = null;
   var _puntos = null;
 
+  // Plugin inline: dibuja línea vertical (crosshair) en la posición activa del tooltip
+  var pluginCrosshair = {
+    id: "crosshair",
+    afterDraw: function (chart) {
+      var activos = chart.tooltip._active;
+      if (!activos || activos.length === 0) return;
+      var ctx = chart.ctx;
+      var x = activos[0].element.x;
+      var topY = chart.scales.y.top;
+      var bottomY = chart.scales.y.bottom;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, topY);
+      ctx.lineTo(x, bottomY);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(45, 106, 79, 0.35)";
+      ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.restore();
+    },
+  };
+
   function dibujar(puntos) {
     _puntos = puntos;
 
@@ -23,22 +45,18 @@ window.TrailMind.grafico = (function () {
     if (aviso) aviso.style.display = "none";
     if (canvas) canvas.style.display = "block";
 
-    // Destruir instancia anterior antes de redibujar
     if (instancia) {
       instancia.destroy();
       instancia = null;
     }
 
     var distancias = _calcularDistanciasAcumuladas(puntos);
-
-    var etiquetas = distancias.map(function (d) {
-      return d.toFixed(1) + " km";
-    });
-
+    var etiquetas = distancias.map(function (d) { return d.toFixed(1) + " km"; });
     var ctx = canvas.getContext("2d");
 
     instancia = new Chart(ctx, {
       type: "line",
+      plugins: [pluginCrosshair],
       data: {
         labels: etiquetas,
         datasets: [
@@ -46,7 +64,13 @@ window.TrailMind.grafico = (function () {
             label: "Altitud (m)",
             data: elevaciones,
             borderColor: "#2d6a4f",
-            backgroundColor: "rgba(45, 106, 79, 0.15)",
+            backgroundColor: function (context) {
+              var chart = context.chart;
+              var gradient = chart.ctx.createLinearGradient(0, 0, 0, chart.height);
+              gradient.addColorStop(0, "rgba(45, 106, 79, 0.2)");
+              gradient.addColorStop(1, "rgba(45, 106, 79, 0.02)");
+              return gradient;
+            },
             borderWidth: 2,
             pointRadius: 0,
             pointHoverRadius: 4,
@@ -80,10 +104,15 @@ window.TrailMind.grafico = (function () {
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: "rgba(27, 67, 50, 0.92)",
+            titleColor: "rgba(255,255,255,0.7)",
+            bodyColor: "#fff",
+            padding: 10,
+            cornerRadius: 7,
             callbacks: {
               label: function (ctx) {
                 var v = ctx.parsed.y;
-                return v !== null ? Math.round(v) + " m" : "Sin dato";
+                return v !== null ? "  " + Math.round(v) + " m" : "  Sin dato";
               },
             },
           },
@@ -92,16 +121,18 @@ window.TrailMind.grafico = (function () {
           x: {
             ticks: {
               maxTicksLimit: 8,
-              color: "#555",
+              color: "#8a9490",
+              font: { size: 11 },
             },
-            grid: { color: "rgba(0,0,0,0.05)" },
+            grid: { color: "rgba(0,0,0,0.04)" },
           },
           y: {
             ticks: {
-              color: "#555",
+              color: "#8a9490",
+              font: { size: 11 },
               callback: function (v) { return v + " m"; },
             },
-            grid: { color: "rgba(0,0,0,0.08)" },
+            grid: { color: "rgba(0,0,0,0.06)" },
           },
         },
       },
@@ -115,7 +146,6 @@ window.TrailMind.grafico = (function () {
     });
   }
 
-  // Distancia acumulada aproximada usando haversine simplificado (en km)
   function _calcularDistanciasAcumuladas(puntos) {
     var distancias = [0];
     var acum = 0;
@@ -132,9 +162,7 @@ window.TrailMind.grafico = (function () {
     var dLon = _rad(b.lon - a.lon);
     var sinLat = Math.sin(dLat / 2);
     var sinLon = Math.sin(dLon / 2);
-    var q =
-      sinLat * sinLat +
-      Math.cos(_rad(a.lat)) * Math.cos(_rad(b.lat)) * sinLon * sinLon;
+    var q = sinLat * sinLat + Math.cos(_rad(a.lat)) * Math.cos(_rad(b.lat)) * sinLon * sinLon;
     return R * 2 * Math.atan2(Math.sqrt(q), Math.sqrt(1 - q));
   }
 

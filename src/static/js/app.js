@@ -11,8 +11,23 @@ document.addEventListener("DOMContentLoaded", function () {
   var btnConsultarMeteo = document.getElementById("btn-consultar-meteo");
   var btnGenerarPlan = document.getElementById("btn-generar-plan");
   var btnBuscarPoi = document.getElementById("btn-buscar-poi");
+  var sliderPoi = document.getElementById("poi-radio");
 
-  // Abrir selector de archivo al pulsar el botón
+  // Inicializar slider y enlazar actualización en tiempo real
+  if (sliderPoi) {
+    _actualizarSlider(sliderPoi);
+    sliderPoi.addEventListener("input", function () {
+      _actualizarSlider(this);
+    });
+  }
+
+  // Toggles de tipo POI (💧 / ⛺)
+  document.querySelectorAll(".poi-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      this.classList.toggle("activo");
+    });
+  });
+
   btnSeleccionar.addEventListener("click", function () {
     inputArchivo.click();
   });
@@ -54,11 +69,11 @@ document.addEventListener("DOMContentLoaded", function () {
     TrailMind.poi.buscar();
   });
 
-  // Volver a la pantalla de carga
   btnNuevoTrack.addEventListener("click", function () {
     TrailMind.poi.limpiar();
     dashboard.classList.add("oculto");
     zonaCarga.classList.remove("oculto");
+    btnNuevoTrack.classList.add("oculto");
     ocultarError();
     inputArchivo.value = "";
   });
@@ -66,7 +81,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function procesarArchivo(archivo) {
     ocultarError();
 
-    // Validación de extensión en cliente para respuesta inmediata
     if (!archivo.name.toLowerCase().endsWith(".gpx")) {
       mostrarError("El archivo debe tener extensión .gpx");
       return;
@@ -81,9 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
       method: "POST",
       body: formData,
     })
-      .then(function (respuesta) {
-        return respuesta.json();
-      })
+      .then(function (respuesta) { return respuesta.json(); })
       .then(function (json) {
         mostrarSpinner(false);
         if (json.ok) {
@@ -99,9 +111,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function mostrarDashboard(datos) {
-    // Inicializar mapa antes de hacerlo visible (evita mapa en blanco)
     zonaCarga.classList.add("oculto");
     dashboard.classList.remove("oculto");
+    btnNuevoTrack.classList.remove("oculto");
 
     // Forzar reflow para que Leaflet calcule dimensiones correctas
     window.dispatchEvent(new Event("resize"));
@@ -128,6 +140,20 @@ document.addEventListener("DOMContentLoaded", function () {
   function ocultarError() {
     mensajeError.classList.add("oculto");
     mensajeError.textContent = "";
+  }
+
+  // Actualiza el fondo degradado del slider y la etiqueta de valor
+  function _actualizarSlider(slider) {
+    var val = parseInt(slider.value, 10);
+    var pct = ((val - 100) / (5000 - 100)) * 100;
+    slider.style.background =
+      "linear-gradient(to right, #2d6a4f 0%, #2d6a4f " + pct + "%, rgba(0,0,0,0.12) " + pct + "%, rgba(0,0,0,0.12) 100%)";
+    var labelEl = document.getElementById("poi-radio-valor");
+    if (labelEl) {
+      labelEl.textContent = val >= 1000
+        ? (val % 1000 === 0 ? val / 1000 + " km" : (val / 1000).toFixed(1) + " km")
+        : val + " m";
+    }
   }
 
 });

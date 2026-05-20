@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pip install *)",
       "Bash(python -m pytest tests/test_gpx_parser.py -v)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(dir /s /b)"
     ]
   }
 }

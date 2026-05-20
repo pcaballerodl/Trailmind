@@ -4,6 +4,7 @@ window.TrailMind.meteo = (function () {
 
   var _lat = null;
   var _lon = null;
+  var _previsionActual = null;
 
   // Iconos por rango de código WMO
   var _ICONOS = [
@@ -59,6 +60,7 @@ window.TrailMind.meteo = (function () {
   }
 
   function renderizar(prevision) {
+    _previsionActual = prevision;
     var contenedor = document.getElementById("meteo-tarjetas");
     if (!contenedor) return;
 
@@ -137,10 +139,15 @@ window.TrailMind.meteo = (function () {
     if (el) el.classList.add("oculto");
   }
 
+  function obtenerPrevision() {
+    return _previsionActual;
+  }
+
   return {
     establecerCoordenadas: establecerCoordenadas,
     cargar: cargar,
     renderizar: renderizar,
+    obtenerPrevision: obtenerPrevision,
   };
 
 })();

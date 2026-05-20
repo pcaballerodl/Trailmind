@@ -1,7 +1,10 @@
+import json
 from datetime import datetime, date
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from gpx import parsear_gpx
 from weather import obtener_prevision
+from ai import generar_plan_stream
+from ai.prompt import construir_sistema, construir_usuario
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -71,6 +74,58 @@ def prevision_meteo():
         return jsonify({"ok": False, "error": str(e)}), 502
     except Exception:
         return jsonify({"ok": False, "error": "Error inesperado al obtener la previsión"}), 500
+
+
+@app.route("/api/ia/plan", methods=["POST"])
+def generar_plan_ia():
+    cuerpo = request.get_json(silent=True)
+    if not cuerpo:
+        return jsonify({"ok": False, "error": "Cuerpo JSON inválido"}), 400
+
+    track = cuerpo.get("track")
+    if not track:
+        return jsonify({"ok": False, "error": "Falta el campo 'track'"}), 400
+
+    preferencias = cuerpo.get("preferencias", {})
+    nivel = preferencias.get("nivel", "")
+    if nivel not in ("principiante", "intermedio", "avanzado", "experto"):
+        return jsonify({"ok": False, "error": "nivel debe ser: principiante, intermedio, avanzado o experto"}), 400
+
+    try:
+        dias = int(preferencias.get("dias", 1))
+        if not (1 <= dias <= 14):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "dias debe ser un entero entre 1 y 14"}), 400
+
+    try:
+        personas = int(preferencias.get("personas", 1))
+        if not (1 <= personas <= 20):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "personas debe ser un entero entre 1 y 20"}), 400
+
+    prevision = cuerpo.get("prevision")
+    preferencias_limpias = {"dias": dias, "nivel": nivel, "personas": personas}
+
+    prompt_sistema = construir_sistema()
+    prompt_usuario = construir_usuario(track, prevision, preferencias_limpias)
+
+    def stream_eventos():
+        try:
+            for chunk in generar_plan_stream(prompt_sistema, prompt_usuario):
+                yield f"data: {json.dumps({'tipo': 'chunk', 'texto': chunk})}\n\n"
+            yield f"data: {json.dumps({'tipo': 'fin'})}\n\n"
+        except RuntimeError as e:
+            yield f"data: {json.dumps({'tipo': 'error', 'mensaje': str(e)})}\n\n"
+        except Exception:
+            yield f"data: {json.dumps({'tipo': 'error', 'mensaje': 'Error inesperado al generar el plan'})}\n\n"
+
+    return Response(
+        stream_with_context(stream_eventos()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 if __name__ == "__main__":

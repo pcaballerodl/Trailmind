@@ -70,6 +70,8 @@ def sugerir_checkpoints(tramos, pois=None, dias=1, modo="optimo"):
             idx = _indice_en_tiempo(tramos, campo_tiempo, t_comida)
             idx = max(idx_ini + 1, min(idx, idx_fin - 1))
             idx = _ajustar_zona_plana(tramos, idx)
+            # Re-clamp tras ajuste de zona plana para no salirse del segmento
+            idx = max(idx_ini + 1, min(idx, idx_fin - 1))
 
             if not _demasiado_cerca(idx, indices_camps, tramos, min_km=1.5):
                 poi = _poi_mas_cercano(tramos[idx], pois, {"fuente", "refugio"})

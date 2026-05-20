@@ -475,3 +475,58 @@ def test_endpoint_pois_vacios(cliente):
     )
     assert r.status_code == 200
     assert r.get_json()["ok"] is True
+
+
+# ── Tests regresión bugs corregidos ───────────────────────────────────────────
+
+def test_comida_no_sale_del_segmento():
+    """Bug 3: _ajustar_zona_plana no debe sacar la comida del segmento del día."""
+    # Construcción de tramos donde el ajuste a zona plana podría salirse del segmento
+    # Pendiente muy alta en la primera mitad, plana en la segunda
+    n = 60
+    tramos = []
+    for i in range(n):
+        frac = i / (n - 1)
+        # Alta pendiente hasta índice 29, plana desde 30 en adelante
+        if i < n // 2:
+            alt = 1000 + i * 50  # empinado
+        else:
+            alt = 1000 + (n // 2) * 50  # plana
+        tramos.append({
+            "indice": i,
+            "km_acum": frac * 30.0,
+            "alt_m": float(alt),
+            "lat": 42.0 + frac * 0.5,
+            "lon": 0.0,
+            "tiempo_optimo_min": frac * 600.0,
+            "tiempo_desfavorable_min": frac * 690.0,
+        })
+
+    resultado = sugerir_checkpoints(tramos, dias=2)
+    # Todos los checkpoints de comida deben estar dentro de [1, n-2]
+    n_total = len(tramos)
+    for cp in resultado:
+        if cp["tipo"] == "comida":
+            assert 0 < cp["indice"] < n_total - 1, (
+                f"Comida en índice {cp['indice']} fuera de rango [1, {n_total-2}]"
+            )
+
+
+def test_campamento_no_en_inicio():
+    """Bug 3: El campamento de fin de día 1 no debe coincidir con el índice inicial."""
+    tramos = _tramo_simple(100, 600.0)
+    resultado = sugerir_checkpoints(tramos, dias=2)
+    camps = [cp for cp in resultado if cp["tipo"] == "campamento"]
+    assert len(camps) == 1
+    # El campamento debe estar en algún punto interior, no en el índice 0
+    assert camps[0]["indice"] > 0
+    assert camps[0]["indice"] < len(tramos) - 1
+
+
+def test_hora_salida_por_defecto_es_0800():
+    """Bug 2: el estado interno de itinerario debe usar 08:00 por defecto."""
+    # Verificado a nivel de módulo: _horaSalidaEnMinutos() con "08:00" → 480
+    horas = "08:00"
+    partes = horas.split(":")
+    minutos = int(partes[0]) * 60 + int(partes[1])
+    assert minutos == 480

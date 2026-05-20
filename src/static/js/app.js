@@ -85,9 +85,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ── Modo añadir checkpoint manual ────────────────────────────────────────────
+  // NOTA: el listener genérico .poi-toggle ya hizo toggle("activo") antes de este,
+  // así que sólo leemos el estado resultante con contains() en vez de volver a toggle.
   if (btnModoCheckpoint) {
     btnModoCheckpoint.addEventListener("click", function () {
-      var activo = btnModoCheckpoint.classList.toggle("activo");
+      var activo = btnModoCheckpoint.classList.contains("activo");
       TrailMind.itinerario.setModoAnadir(activo);
       if (activo) {
         TrailMind.mapa.activarModoCheckpoint();
@@ -226,6 +228,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btnModoCheckpoint) btnModoCheckpoint.classList.remove("activo");
     if (selectorModo)    selectorModo.value = "optimo";
     if (inputHoraSalida) inputHoraSalida.value = "08:00";
+    TrailMind.itinerario.setHoraSalida("08:00");
+    TrailMind.itinerario.setModo("optimo");
     TrailMind.mapa.desactivarModoCheckpoint();
 
     window.dispatchEvent(new Event("resize"));

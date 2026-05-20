@@ -61,6 +61,9 @@ def prevision_meteo():
     except ValueError:
         return jsonify({"ok": False, "error": "dias debe ser un entero entre 1 y 16"}), 400
 
+    if (fecha_obj - hoy).days + dias > 16:
+        return jsonify({"ok": False, "error": "El rango de días solicitado excede los 16 días de previsión disponibles"}), 400
+
     try:
         prevision = obtener_prevision(lat, lon, fecha_str, dias)
         return jsonify({"ok": True, "prevision": prevision})

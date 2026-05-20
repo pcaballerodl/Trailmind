@@ -200,12 +200,30 @@
 
       <!-- Gráfico de elevación -->
       <section id="panel-grafico">
-        <h3>Perfil de elevación</h3>
+        <div class="grafico-cabecera">
+          <h3>Perfil de elevación</h3>
+          <div class="grafico-controles">
+            <select id="selector-modo" title="Modo de estimación de tiempo">
+              <option value="optimo">⏱ Tiempo óptimo</option>
+              <option value="desfavorable">⚠️ Desfavorable</option>
+            </select>
+            <button id="btn-limpiar-seleccion" class="oculto btn-limpiar-sel">✕ Limpiar selección</button>
+          </div>
+        </div>
         <div class="contenedor-canvas">
           <canvas id="grafico-elevacion"></canvas>
           <div id="grafico-sin-elevacion" style="display:none">
             Este track no contiene datos de elevación
           </div>
+        </div>
+        <!-- Panel de estadísticas del tramo seleccionado -->
+        <div id="panel-tramo" class="oculto">
+          <div class="tramo-stat"><span class="tramo-label">Distancia</span><span id="tramo-distancia" class="tramo-valor">—</span></div>
+          <div class="tramo-stat"><span class="tramo-label">Desnivel +</span><span id="tramo-desnivel-pos" class="tramo-valor verde">—</span></div>
+          <div class="tramo-stat"><span class="tramo-label">Desnivel −</span><span id="tramo-desnivel-neg" class="tramo-valor rojo">—</span></div>
+          <div class="tramo-stat"><span class="tramo-label">Pendiente media</span><span id="tramo-pendiente" class="tramo-valor">—</span></div>
+          <div class="tramo-stat"><span class="tramo-label">⏱ Óptimo</span><span id="tramo-tiempo-opt" class="tramo-valor">—</span></div>
+          <div class="tramo-stat"><span class="tramo-label">⚠️ Desfav.</span><span id="tramo-tiempo-des" class="tramo-valor">—</span></div>
         </div>
       </section>
 
